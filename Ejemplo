@@ -1,0 +1,86 @@
+// Capa de Presentación (UI Layer)
+public class LibroController {
+    private LibroService libroService;
+
+    public LibroController(LibroService libroService) {
+        this.libroService = libroService;
+    }
+
+    public void prestarLibro(int libroId, int usuarioId) {
+        try {
+            libroService.realizarPrestamo(libroId, usuarioId);
+            System.out.println("Préstamo realizado con éxito");
+        } catch (Exception e) {
+            System.out.println("Error al realizar el préstamo: " + e.getMessage());
+        }
+    }
+}
+
+// Capa de Negocio (Business Layer)
+public class LibroService {
+    private LibroRepository libroRepository;
+    private PrestamoRepository prestamoRepository;
+
+    public LibroService(LibroRepository libroRepository, PrestamoRepository prestamoRepository) {
+        this.libroRepository = libroRepository;
+        this.prestamoRepository = prestamoRepository;
+    }
+
+    public void realizarPrestamo(int libroId, int usuarioId) throws Exception {
+        Libro libro = libroRepository.findById(libroId);
+        if (libro == null) {
+            throw new Exception("Libro no encontrado");
+        }
+        
+        if (!libro.isDisponible()) {
+            throw new Exception("Libro no disponible para préstamo");
+        }
+
+        Prestamo nuevoPrestamo = new Prestamo(libro, usuarioId);
+        prestamoRepository.save(nuevoPrestamo);
+        
+        libro.setDisponible(false);
+        libroRepository.update(libro);
+    }
+}
+
+// Capa de Datos (Data Access Layer)
+public class LibroRepository {
+    private Connection dbConnection;
+
+    public Libro findById(int id) {
+        // Código para buscar en la base de datos
+        return new Libro(); // Simplificado para el ejemplo
+    }
+
+    public void update(Libro libro) {
+        // Código para actualizar en la base de datos
+    }
+}
+
+// Entidades (Domain Model)
+public class Libro {
+    private int id;
+    private String titulo;
+    private boolean disponible;
+
+    public boolean isDisponible() {
+        return disponible;
+    }
+
+    public void setDisponible(boolean disponible) {
+        this.disponible = disponible;
+    }
+}
+
+public class Prestamo {
+    private Libro libro;
+    private int usuarioId;
+    private Date fechaPrestamo;
+
+    public Prestamo(Libro libro, int usuarioId) {
+        this.libro = libro;
+        this.usuarioId = usuarioId;
+        this.fechaPrestamo = new Date();
+    }
+}
